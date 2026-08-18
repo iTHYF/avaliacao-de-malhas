@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from metrics.composite_indices import DecisorDeMetricas
 from simulation.closed_loop_simulator import AvaliadorPID
+from storage.history_service import HistoryService
 
 def gerar_explicacao(ov, comp, atu, rui, trans, perm, pesos):
     explicacoes = []
@@ -177,6 +178,22 @@ def executar_sistema():
 
         lista_indices_normalizados.append(ind_norm)
 
+    # SALVAMENTO NO HISTÓRICO DE AVALIAÇÕES 
+    
+    dados_app = {
+        "nome_malha": nome_malha, "var_controlada": var_controlada, 
+        "var_manipulada": var_manipulada, "unidade_engenharia": unidade_engenharia,
+        "responsavel_tecnico": responsavel_tecnico, "SP": SP, "K": K, 
+        "tau": tau, "T": T, "sentido_teste": sentido_teste,
+        "amp_degrau": amp_degrau, "t_duracao_max": t_duracao_max,
+        "ranking": ranking, "lista_indices_brutos": lista_indices_brutos
+    }
+    
+    try:
+        service = HistoryService()
+        service.salvar_avaliacao(dados_app)
+    except Exception as e:
+        print(f"\n[AVISO] Não foi possível salvar o histórico. O relatório prosseguirá em memória. Detalhe: {e}")
     # ==========================================================
     # CABEÇALHO DO RELATÓRIO COM OS DADOS DIGITADOS
     # ==========================================================
