@@ -57,7 +57,7 @@ def executar_sistema():
     t_estabilizacao = float(input("Tempo de estabilização antes do ensaio (s): "))
     t_duracao_max = float(input("Duração máxima do ensaio (s): "))
     criterio_parada = int(input("Critério de parada [1] Acomodação  [2] Tempo máximo: "))
-    num_repeticoes = int(input("Número de repetições: "))
+    num_repeticoes = int(input("Número de repetições: ")) # pyright: ignore[reportUndefinedVariable]
     intervalo_testes = float(input("Intervalo entre testes (s): "))
     limite_overshoot = float(input("Limite máximo de overshoot permitido (em percentagem sem '%'): "))
     limite_esforco = float(input("Limite máximo de esforço de controle: "))
