@@ -4,7 +4,7 @@ import pandas as pd
 import uuid
 
 class ExcelRepository:
-    def __init__(self, filepath="historico_avaliacoes.xlsx"):
+    def __init__(self, filepath):
         self.filepath = filepath
 
     def get_existing_data(self):
@@ -22,7 +22,10 @@ class ExcelRepository:
 
         for sheet_name, new_df in new_dfs_dict.items():
             if sheet_name in final_data:
-                final_data[sheet_name] = pd.concat([final_data[sheet_name], new_df], ignore_index=True)
+                if sheet_name == 'Info_Planta':
+                    final_data[sheet_name] = new_df
+                else:
+                    final_data[sheet_name] = pd.concat([final_data[sheet_name], new_df], ignore_index=True)
             else:
                 final_data[sheet_name] = new_df
 
@@ -40,16 +43,11 @@ class ExcelRepository:
                 return True
                 
             except PermissionError as e:
-                if os.path.exists(temp_filepath):
-                    try: os.remove(temp_filepath)
-                    except: pass
-                
                 if attempt < max_retries - 1:
                     time.sleep(0.5)
                 else:
                     raise e 
-            except Exception as e:
+            finally:
                 if os.path.exists(temp_filepath):
                     try: os.remove(temp_filepath)
                     except: pass
-                raise e

@@ -3,9 +3,6 @@ import pandas as pd
 from storage.excel_repository import ExcelRepository
 
 class HistoryService:
-    def __init__(self):
-        self.repo = ExcelRepository()
-
     def _gerar_id_avaliacao(self, existing_data):
         while True:
             now = datetime.now()
@@ -23,13 +20,43 @@ class HistoryService:
         return "PID"
 
     def salvar_avaliacao(self, dados_app):
-        existing_data = self.repo.get_existing_data()
+        K = float(dados_app.get("K", 0.0))
+        tau = float(dados_app.get("tau", 0.0))
+        T = float(dados_app.get("T", 0.0))
+        
+        filepath = f"historico_planta_K{K}_tau{tau}_T{T}.xlsx"
+        
+        repo = ExcelRepository(filepath)
+        existing_data = repo.get_existing_data()
         id_avaliacao, data_hora = self._gerar_id_avaliacao(existing_data)
-                
-        av_df = pd.DataFrame([{"ID_Avaliacao": id_avaliacao, "Data_Hora": data_hora, "Modo_Operacao": "Simulado", "Responsavel": dados_app.get("responsavel_tecnico", ""), "Schema_Version": "1.0"}])
-        malhas_df = pd.DataFrame([{"ID_Avaliacao": id_avaliacao, "Nome_Malha": dados_app.get("nome_malha", ""), "Var_Controlada_PV": dados_app.get("var_controlada", ""), "Var_Manipulada_MV": dados_app.get("var_manipulada", ""), "Unidade": dados_app.get("unidade_engenharia", ""), "Ponto_Operacao_SP": dados_app.get("SP", 0.0), "K_Planta": dados_app.get("K", 0.0), "Tau_Planta": dados_app.get("tau", 0.0), "Atraso_Planta": dados_app.get("T", 0.0)}])
+    
+        av_df = pd.DataFrame([{
+            "ID_Avaliacao": id_avaliacao, 
+            "Nome_Malha": dados_app.get("nome_malha", ""), 
+            "Ponto_Operacao_SP": dados_app.get("SP", 0.0),
+            "Data_Hora": data_hora, 
+            "Modo_Operacao": "Simulado", 
+            "Responsavel": dados_app.get("responsavel_tecnico", ""), 
+            "Schema_Version": "1.1"
+        }])
+        
+        info_planta_df = pd.DataFrame([{
+            "K_Planta": K, 
+            "Tau_Planta": tau, 
+            "Atraso_Planta": T,
+            "Var_Controlada_PV": dados_app.get("var_controlada", ""), 
+            "Var_Manipulada_MV": dados_app.get("var_manipulada", ""), 
+            "Unidade": dados_app.get("unidade_engenharia", "")
+        }])
+        
         id_ensaio = f"ENS-{id_avaliacao}-01"
-        ensaios_df = pd.DataFrame([{"ID_Ensaio": id_ensaio, "ID_Avaliacao": id_avaliacao, "Sentido_Degrau": dados_app.get("sentido_teste", 0), "Amplitude_Degrau": dados_app.get("amp_degrau", 0.0), "Duracao_Configurada_Ensaio": dados_app.get("t_duracao_max", 0.0), "Caminho_Dados_Brutos": pd.NA}])
+        ensaios_df = pd.DataFrame([{
+            "ID_Ensaio": id_ensaio, "ID_Avaliacao": id_avaliacao, 
+            "Sentido_Degrau": dados_app.get("sentido_teste", 0), 
+            "Amplitude_Degrau": dados_app.get("amp_degrau", 0.0), 
+            "Duracao_Configurada_Ensaio": dados_app.get("t_duracao_max", 0.0), 
+            "Caminho_Dados_Brutos": pd.NA
+        }])
 
         controladores_list = []
         metricas_list = []
@@ -51,7 +78,6 @@ class HistoryService:
                 "Indice_Global_J": pid_info.get("score", 0.0), "Classificacao": pid_info.get("status", "")
             })
             
-
             brutos_idx = pid_info['id'] - 1
             ind_brutos = lista_indices_brutos[brutos_idx]
 
@@ -61,7 +87,10 @@ class HistoryService:
                 "Overshoot_perc": ind_brutos.get("Overshoot", 0.0), "Tempo_Acomodacao": ind_brutos.get("Tempo_Acomodacao", 0.0), "Tempo_Subida": ind_brutos.get("Tempo_Subida", 0.0)
             })
 
-        self.repo.save_history({
-            "Avaliacoes": av_df, "Malhas": malhas_df, "Ensaios": ensaios_df,
-            "Controladores": pd.DataFrame(controladores_list), "Metricas": pd.DataFrame(metricas_list)
+        repo.save_history({
+            "Avaliacoes": av_df, 
+            "Ensaios": ensaios_df,
+            "Controladores": pd.DataFrame(controladores_list), 
+            "Metricas": pd.DataFrame(metricas_list),
+            "Info_Planta": info_planta_df
         })
