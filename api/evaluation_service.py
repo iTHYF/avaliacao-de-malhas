@@ -1,3 +1,4 @@
+
 import logging
 
 from metrics.composite_indices import DecisorDeMetricas
@@ -8,7 +9,7 @@ from api.schemas import AvaliacaoRequest, AvaliacaoResponse, PIDRanking, PIDMetr
 
 logger = logging.getLogger(__name__)
 
-def _montar_dados_historico(req: AvaliacaoRequest, ranking: list, lista_indices_brutos: list) -> dict:
+def _montar_dados_historico(req: AvaliacaoRequest, ranking: list, lista_indices_brutos: list, pesos: dict) -> dict:
     return {
         "nome_malha": req.malha.nome_malha,
         "var_controlada": req.malha.var_controlada,
@@ -20,7 +21,9 @@ def _montar_dados_historico(req: AvaliacaoRequest, ranking: list, lista_indices_
         "amp_degrau": req.ensaio.amp_degrau,
         "t_duracao_max": req.ensaio.t_duracao_max,
         "ranking": ranking,
-        "lista_indices_brutos": lista_indices_brutos
+        "lista_indices_brutos": lista_indices_brutos,
+        "lista_pids": [{"id": p.id, "Kp": p.Kp, "Ki": p.Ki, "Kd": p.Kd} for p in req.controladores],
+        "pesos": pesos
     }
 
 def _montar_resposta_api(ranking_interno: list, req_controladores: list, lista_indices_brutos: list) -> AvaliacaoResponse:
@@ -137,7 +140,7 @@ def avaliar_controladores(req: AvaliacaoRequest) -> AvaliacaoResponse:
     ranking_interno.sort(key=lambda x: x["score"])
     
     try:
-        dados_historico = _montar_dados_historico(req, ranking_interno, lista_indices_brutos)
+        dados_historico = _montar_dados_historico(req, ranking_interno, lista_indices_brutos, pesos)
         HistoryService().salvar_avaliacao(dados_historico)
     except Exception as e:
         logger.error(f"Erro ao salvar historico no Excel: {e}")

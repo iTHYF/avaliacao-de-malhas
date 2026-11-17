@@ -1,3 +1,4 @@
+
 import numpy as np
 import control as ct
 from models.delay_models import obter_atraso_discreto
@@ -19,7 +20,7 @@ class AvaliadorPID:
 
         self.t_duracao = t_duracao
         self.amp_degrau = amp_degrau
-        self.t_estab = t_estab  
+        self.t_estab = t_estab
         self.int_testes = int_testes
         self.tolerancia_rp = tolerancia_rp
         self.sentido_teste = sentido_teste
@@ -30,7 +31,7 @@ class AvaliadorPID:
 
         self.t_ensaio = np.arange(0, self.t_duracao, self.Ts)
         self.dt = self.Ts
-        
+
         self.sp_desvio = gerar_sp_desvio(self.t_ensaio, self.sentido_teste, self.t_estab, self.amp_degrau, self.int_testes)
         self.sp_ensaio = self.sp_desvio + self.setpoint
         self.segmentos = self._identificar_segmentos()
@@ -102,7 +103,7 @@ class AvaliadorPID:
         controlador_disc, PI_disc = criar_controlador_pid(Kp, Ki, Kd, self.Ts)
         planta_disc_sem_atraso = ct.sample_system(self.planta_cont_sem_atraso, self.Ts, method='zoh')
         atraso_disc = obter_atraso_discreto(self.T, self.Ts)
-        
+
         planta_disc = planta_disc_sem_atraso * atraso_disc
 
         planta_ss = ct.ss(planta_disc)
@@ -111,13 +112,13 @@ class AvaliadorPID:
 
         sys_feedback = ct.feedback(planta_ss, controlador_ss)
         malha_y = PI_ss * sys_feedback
-        
+
         sys_feedback_u = ct.feedback(1, controlador_ss * planta_ss)
         malha_u = PI_ss * sys_feedback_u
 
         chaves_metricas = [
             "IAE", "ISE", "ITAE", "ITSE", "Overshoot",
-            "Tempo_Acomodacao", "Tempo_Subida", "Erro_Regime", 
+            "Tempo_Acomodacao", "Tempo_Subida", "Erro_Regime",
             "Var_Saida", "Var_Controle", "Cruzamentos_SP"
         ]
         total_indices = {k: 0.0 for k in chaves_metricas}
@@ -145,12 +146,12 @@ class AvaliadorPID:
 
             PV0 = self.setpoint
             MV0 = self.MV0
-            
+
             y_abs = y_desvio + PV0
-            
+
             u_abs = u_desvio + MV0
             sp_abs = self.sp_ensaio
-            
+
             e_abs = sp_abs - y_abs
 
             idx_parada = len(self.t_ensaio)

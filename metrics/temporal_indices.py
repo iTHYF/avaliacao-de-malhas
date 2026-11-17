@@ -3,10 +3,8 @@ import numpy as np
 def calcular_indices_temporais(y, sp_inicial, sp_final, e, t, tolerancia_rp, retornar_acomodacao=False):
     delta_sp = sp_final - sp_inicial
     if delta_sp != 0:
-        # Se for um degrau de subida (ex: 0.5 -> 0.6)
         if delta_sp > 0:
             overshoot = max(0.0, ((np.max(y) - sp_final) / delta_sp) * 100.0)
-        # Se for um degrau de descida (ex: 0.6 -> 0.5)
         else:
             overshoot = max(0.0, ((np.min(y) - sp_final) / delta_sp) * 100.0)
     else:
@@ -19,7 +17,6 @@ def calcular_indices_temporais(y, sp_inicial, sp_final, e, t, tolerancia_rp, ret
         t_acomodacao = 0.0
         acomodou = True
     elif idx_fora_banda[-1] == len(t) - 1:
-        
         t_acomodacao = len(t) * (t[1] - t[0])
         acomodou = False
     else:

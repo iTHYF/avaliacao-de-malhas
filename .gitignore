@@ -12,3 +12,18 @@ __pycache__/
 
 # Senhas e Configurações locais
 .env
+
+
+# Historicos e planilhas geradas
+historicos/
+exportacoes/
+historico_planta_*.xlsx
+*.tmp.xlsx
+
+# Arquivos temporarios do Python
+__pycache__/
+*.pyc
+
+# Ambientes e configuracoes locais
+.venv/
+.env

@@ -1,6 +1,9 @@
+
 from datetime import datetime
 import pandas as pd
 from storage.excel_repository import ExcelRepository
+from storage.history_identity import caminho_historico
+
 
 class HistoryService:
     def _gerar_id_avaliacao(self, existing_data):
@@ -24,9 +27,17 @@ class HistoryService:
         tau = float(dados_app.get("tau", 0.0))
         T = float(dados_app.get("T", 0.0))
         
-        filepath = f"historico_planta_K{K}_tau{tau}_T{T}.xlsx"
+        filepath = caminho_historico(
+             dados_app.get("responsavel_tecnico"),
+                 dados_app.get("nome_malha"),
+                       K,
+                       tau, 
+                       T
+                       )
         
-        repo = ExcelRepository(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        repo = ExcelRepository(str(filepath))
+        
         existing_data = repo.get_existing_data()
         id_avaliacao, data_hora = self._gerar_id_avaliacao(existing_data)
     
@@ -37,7 +48,7 @@ class HistoryService:
             "Data_Hora": data_hora, 
             "Modo_Operacao": "Simulado", 
             "Responsavel": dados_app.get("responsavel_tecnico", ""), 
-            "Schema_Version": "1.1"
+            "Schema_Version": "1.2"
         }])
         
         info_planta_df = pd.DataFrame([{
@@ -62,8 +73,24 @@ class HistoryService:
         metricas_list = []
         
         ranking = dados_app.get("ranking", [])
-        lista_indices_brutos = dados_app.get("lista_indices_brutos", [])
-        
+        lista_indices_brutos = dados_app["lista_indices_brutos"]
+        lista_pids = dados_app["lista_pids"]
+        pesos = dados_app["pesos"]
+
+        # O ranking pode estar ordenado por Score e ter IDs nao sequenciais.
+        if len(lista_pids) != len(lista_indices_brutos):
+            raise ValueError("Quantidade de PIDs diferente da quantidade de resultados brutos.")
+        indices_por_id = {}
+        for pid_config, indices in zip(lista_pids, lista_indices_brutos):
+            pid_id = pid_config["id"]
+            if pid_id in indices_por_id:
+                raise ValueError(f"ID de PID duplicado: {pid_id}")
+            indices_por_id[pid_id] = indices
+
+        if set(pesos) != {"IAE", "ISE", "ITAE", "ITSE", "Overshoot", "Tempo_Acomodacao",
+                          "Tempo_Subida", "Erro_Regime", "Var_Saida", "Var_Controle", "Cruzamentos_SP"}:
+            raise ValueError("Dicionario de pesos incompleto ou com metricas desconhecidas.")
+
         for idx, pid_info in enumerate(ranking):
             seq = idx + 1
             id_ctrl = f"CTRL-{id_avaliacao}-{seq:02d}"
@@ -78,13 +105,19 @@ class HistoryService:
                 "Indice_Global_J": pid_info.get("score", 0.0), "Classificacao": pid_info.get("status", "")
             })
             
-            brutos_idx = pid_info['id'] - 1
-            ind_brutos = lista_indices_brutos[brutos_idx]
+            pid_id = pid_info["id"]
+            if pid_id not in indices_por_id:
+                raise ValueError(f"Nao foram encontrados indicadores do PID {pid_id}.")
+            ind_brutos = indices_por_id[pid_id]
 
             metricas_list.append({
                 "ID_Metrica": id_metrica, "ID_Ensaio": id_ensaio, "ID_Controlador": id_ctrl, "ID_Avaliacao": id_avaliacao,
-                "IAE": ind_brutos.get("IAE", 0.0), "ISE": ind_brutos.get("ISE", 0.0), "ITAE": ind_brutos.get("ITAE", 0.0), "ITSE": ind_brutos.get("ITSE", 0.0),
-                "Overshoot_perc": ind_brutos.get("Overshoot", 0.0), "Tempo_Acomodacao": ind_brutos.get("Tempo_Acomodacao", 0.0), "Tempo_Subida": ind_brutos.get("Tempo_Subida", 0.0)
+                "IAE": ind_brutos["IAE"], "ISE": ind_brutos["ISE"], "ITAE": ind_brutos["ITAE"], "ITSE": ind_brutos["ITSE"],
+                "Overshoot_perc": ind_brutos["Overshoot"], "Tempo_Acomodacao": ind_brutos["Tempo_Acomodacao"], "Tempo_Subida": ind_brutos["Tempo_Subida"],
+                "Erro_Regime": ind_brutos["Erro_Regime"],
+                "Var_Saida": ind_brutos["Var_Saida"],
+                "Var_Controle": ind_brutos["Var_Controle"],
+                "Cruzamentos_SP": ind_brutos["Cruzamentos_SP"]
             })
 
         repo.save_history({
@@ -92,5 +125,9 @@ class HistoryService:
             "Ensaios": ensaios_df,
             "Controladores": pd.DataFrame(controladores_list), 
             "Metricas": pd.DataFrame(metricas_list),
+            "Pesos": pd.DataFrame([
+                {"ID_Avaliacao": id_avaliacao, "Metrica": nome, "Peso": float(peso)}
+                for nome, peso in pesos.items()
+            ]),
             "Info_Planta": info_planta_df
         })

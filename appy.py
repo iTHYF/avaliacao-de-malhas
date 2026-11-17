@@ -1,8 +1,11 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 from metrics.composite_indices import DecisorDeMetricas
 from simulation.closed_loop_simulator import AvaliadorPID
 from storage.history_service import HistoryService
+from storage.history_cli import consultar_historico
+
 
 def gerar_explicacao(ov, comp, atu, trans, perm, pesos):
     explicacoes = []
@@ -176,7 +179,8 @@ def executar_sistema():
         "responsavel_tecnico": responsavel_tecnico, "SP": SP, "K": K, 
         "tau": tau, "T": T, "sentido_teste": sentido_teste,
         "amp_degrau": amp_degrau, "t_duracao_max": t_duracao_max,
-        "ranking": ranking, "lista_indices_brutos": lista_indices_brutos
+        "ranking": ranking, "lista_indices_brutos": lista_indices_brutos,
+        "lista_pids": lista_pids, "pesos": pesos
     }
     
     try:
@@ -303,5 +307,22 @@ def executar_sistema():
     plt.tight_layout()
     plt.show()
 
+
 if __name__ == "__main__":
-    executar_sistema()
+    while True:
+        print("\n========== MENU PRINCIPAL ==========")
+        print("[1] Realizar avaliacao PID")
+        print("[2] Consultar historico")
+        print("[0] Sair")
+
+        opcao = input("Escolha: ").strip()
+
+        if opcao == "1":
+            executar_sistema()
+        elif opcao == "2":
+            consultar_historico()
+        elif opcao == "0":
+            break
+        else:
+            print("Opcao invalida.")
+
