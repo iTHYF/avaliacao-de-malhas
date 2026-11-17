@@ -9,7 +9,8 @@ def obter_configuracoes_plantas():
     return {
         "1": {"desc": "Planta Padrão (Moderada)", "K": 1.0, "tau": 1.0, "T": 1.0, "SP": 1.0},
         "2": {"desc": "Planta Lenta com Alto Atraso", "K": 2.0, "tau": 5.0, "T": 3.0, "SP": 10.0},
-        "3": {"desc": "Planta de Baixo Ganho e Alta Inércia", "K": 0.5, "tau": 10.0, "T": 2.0, "SP": 5.0}
+        "3": {"desc": "Planta de Baixo Ganho e Alta Inércia", "K": 0.5, "tau": 10.0, "T": 2.0, "SP": 5.0},
+        "4": {"desc": "Coluna de Destilação de Wood-Berry", "K": -19.4, "tau": 864.0, "T": 180.0, "SP": 0.5}
     }
 
 def obter_configuracoes_testes():
@@ -19,8 +20,7 @@ def obter_configuracoes_testes():
             "malha": {"nome_malha": "Auto_01_Rapidez", "var_controlada": "Vazão", "var_manipulada": "Bomba", "unidade_engenharia": "L/min", "responsavel_tecnico": "Auto 1"},
             "limites": {"f_op_min": -100.0, "f_op_max": 100.0, "l_sp_min": -20.0, "l_sp_max": 20.0, "l_mv_min": -100.0, "l_mv_max": 100.0, "tempo_amostragem": 0.1},
             "ensaio": {"amp_degrau": 1.0, "sentido_teste": 1, "t_estabilizacao": 5.0, "t_duracao_max": 50.0, "criterio_parada": 2, "num_repeticoes": 1, "intervalo_testes": 10.0, "limite_overshoot": 50.0, "limite_esforco": 100.0, "tolerancia_rp_in": 2.0},
-            "restricoes": {"ov": 3, "comp": 1, "atu": 0, "rui": 1, "trans": 3, "perm": 1},
-            # PIDs rápidos, mas estáveis mesmo com atraso
+            "restricoes": {"ov": 3, "comp": 1, "atu": 0, "trans": 3, "perm": 1},
             "pids": [(0.5, 0.2, 0.0), (0.8, 0.1, 0.0), (0.4, 0.15, 0.0)]
         },
         "2": {
@@ -28,8 +28,7 @@ def obter_configuracoes_testes():
             "malha": {"nome_malha": "Auto_02_Robustez", "var_controlada": "Temperatura", "var_manipulada": "Resistência", "unidade_engenharia": "°C", "responsavel_tecnico": "Auto 2"},
             "limites": {"f_op_min": -100.0, "f_op_max": 100.0, "l_sp_min": -20.0, "l_sp_max": 20.0, "l_mv_min": -100.0, "l_mv_max": 100.0, "tempo_amostragem": 0.1},
             "ensaio": {"amp_degrau": 1.0, "sentido_teste": 2, "t_estabilizacao": 5.0, "t_duracao_max": 60.0, "criterio_parada": 2, "num_repeticoes": 1, "intervalo_testes": 10.0, "limite_overshoot": 10.0, "limite_esforco": 100.0, "tolerancia_rp_in": 5.0},
-            "restricoes": {"ov": 1, "comp": 2, "atu": 1, "rui": 3, "trans": 1, "perm": 3},
-            # PIDs extremamente lentos e seguros para evitar qualquer overshoot
+            "restricoes": {"ov": 1, "comp": 2, "atu": 1, "trans": 1, "perm": 3},
             "pids": [(0.1, 0.05, 0.0), (0.15, 0.02, 0.0), (0.08, 0.01, 0.0)]
         },
         "3": {
@@ -37,17 +36,15 @@ def obter_configuracoes_testes():
             "malha": {"nome_malha": "Auto_03_Equilibrio", "var_controlada": "Pressão", "var_manipulada": "Válvula", "unidade_engenharia": "bar", "responsavel_tecnico": "Auto 3"},
             "limites": {"f_op_min": -100.0, "f_op_max": 100.0, "l_sp_min": -20.0, "l_sp_max": 20.0, "l_mv_min": -100.0, "l_mv_max": 100.0, "tempo_amostragem": 0.1},
             "ensaio": {"amp_degrau": 1.0, "sentido_teste": 3, "t_estabilizacao": 5.0, "t_duracao_max": 60.0, "criterio_parada": 2, "num_repeticoes": 1, "intervalo_testes": 15.0, "limite_overshoot": 25.0, "limite_esforco": 100.0, "tolerancia_rp_in": 2.0},
-            "restricoes": {"ov": 2, "comp": 3, "atu": 0, "rui": 2, "trans": 2, "perm": 2},
-            # PIDs equilibrados
+            "restricoes": {"ov": 2, "comp": 3, "atu": 0, "trans": 2, "perm": 2},
             "pids": [(0.25, 0.1, 0.0), (0.2, 0.05, 0.0), (0.3, 0.15, 0.0)]
         },
         "4": {
-            "desc": "Rejeição a Ruído e Esforço Mínimo",
-            "malha": {"nome_malha": "Auto_04_Ruido", "var_controlada": "Nível", "var_manipulada": "Bomba", "unidade_engenharia": "%", "responsavel_tecnico": "Auto 4"},
+            "desc": "Esforço de Controle Mínimo",
+            "malha": {"nome_malha": "Auto_04_Esforco", "var_controlada": "Nível", "var_manipulada": "Bomba", "unidade_engenharia": "%", "responsavel_tecnico": "Auto 4"},
             "limites": {"f_op_min": -100.0, "f_op_max": 100.0, "l_sp_min": -20.0, "l_sp_max": 20.0, "l_mv_min": -100.0, "l_mv_max": 100.0, "tempo_amostragem": 0.1},
             "ensaio": {"amp_degrau": 2.0, "sentido_teste": 1, "t_estabilizacao": 5.0, "t_duracao_max": 50.0, "criterio_parada": 2, "num_repeticoes": 1, "intervalo_testes": 10.0, "limite_overshoot": 15.0, "limite_esforco": 100.0, "tolerancia_rp_in": 2.0},
-            "restricoes": {"ov": 3, "comp": 2, "atu": 1, "rui": 3, "trans": 1, "perm": 2},
-            # Ganhos baixos geram esforço mínimo (ideal para atuadores sensíveis)
+            "restricoes": {"ov": 3, "comp": 2, "atu": 1, "trans": 1, "perm": 2},
             "pids": [(0.1, 0.05, 0.0), (0.08, 0.02, 0.0), (0.12, 0.04, 0.0)]
         },
         "5": {
@@ -55,9 +52,39 @@ def obter_configuracoes_testes():
             "malha": {"nome_malha": "Auto_05_Precisao", "var_controlada": "pH", "var_manipulada": "Dosadora", "unidade_engenharia": "pH", "responsavel_tecnico": "Auto 5"},
             "limites": {"f_op_min": -100.0, "f_op_max": 100.0, "l_sp_min": -20.0, "l_sp_max": 20.0, "l_mv_min": -100.0, "l_mv_max": 100.0, "tempo_amostragem": 0.1},
             "ensaio": {"amp_degrau": 1.0, "sentido_teste": 3, "t_estabilizacao": 5.0, "t_duracao_max": 60.0, "criterio_parada": 2, "num_repeticoes": 1, "intervalo_testes": 15.0, "limite_overshoot": 20.0, "limite_esforco": 100.0, "tolerancia_rp_in": 1.0},
-            "restricoes": {"ov": 1, "comp": 2, "atu": 0, "rui": 1, "trans": 2, "perm": 1},
-            # PIDs focados em zerar o erro com integradores controlados
+            "restricoes": {"ov": 1, "comp": 2, "atu": 0, "trans": 2, "perm": 1},
             "pids": [(0.3, 0.2, 0.0), (0.2, 0.1, 0.0), (0.4, 0.1, 0.0)]
+        },
+        "6": {
+            "desc": "Estudo de Caso: Coluna de Wood-Berry (5 PIDs Graduais)",
+            "malha": {
+                "nome_malha": "Coluna_Wood_Berry", 
+                "var_controlada": "Composição do Fundo", 
+                "var_manipulada": "Vazão de Vapor no Refervedor", 
+                "unidade_engenharia": "mol %", 
+                "responsavel_tecnico": "Thyfanne Dayane"
+            },
+            "limites": {
+                "f_op_min": 0.35, "f_op_max": 0.75, 
+                "l_sp_min": 0.0, "l_sp_max": 1.0, 
+                "l_mv_min": -0.5, "l_mv_max": 0.5, 
+                "tempo_amostragem": 10.0
+            },
+            "ensaio": {
+                "amp_degrau": 0.1, "sentido_teste": 3, 
+                "t_estabilizacao": 300.0, "t_duracao_max": 8000.0, 
+                "criterio_parada": 2, "num_repeticoes": 1, 
+                "intervalo_testes": 3500.0, "limite_overshoot": 15.0, 
+                "limite_esforco": 1.5, "tolerancia_rp_in": 2.0
+            },
+            "restricoes": {"ov": 1, "comp": 3, "atu": 1, "trans": 1, "perm": 1},
+            "pids": [
+                (-0.043, -0.00005, 0.0),     
+                (-0.080, -0.00009, 0.0),     
+                (-0.124, -0.00014, 0.0),     
+                (-0.200, -0.00040, -10.0),   
+                (-0.297, -0.00083, -26.73)   
+            ]
         }
     }
 
@@ -66,28 +93,27 @@ def executar_sistema_automatico():
     print(f"{'SELEÇÃO E OTIMIZAÇÃO DE CONTROLADORES PID (MODO AUTOMÁTICO)':^80}")
     print("="*80)
     
-    # 1. ESCOLHA DA PLANTA
     plantas = obter_configuracoes_plantas()
     print("\nPlantas Pré-Configuradas Disponíveis:")
     for key, p in plantas.items():
         print(f"[{key}] {p['desc']} (K={p['K']}, tau={p['tau']}, T={p['T']}, SP={p['SP']})")
         
-    escolha_planta = input("\nEscolha a planta que deseja testar (1-3): ")
+    escolha_planta = input("\nEscolha a planta que deseja testar (1-4): ")
     if escolha_planta not in plantas:
         print("Escolha inválida. Encerrando.")
         return
         
     planta_cfg = plantas[escolha_planta]
     K, tau, T, SP = planta_cfg["K"], planta_cfg["tau"], planta_cfg["T"], planta_cfg["SP"]
+    MV0 = float(input("Ponto de operação inicial da variável manipulada (MV0): "))
     tipo_planta, zeta = 1, 1.0
 
-    # 2. ESCOLHA DO TESTE
     configuracoes = obter_configuracoes_testes()
     print("\nTestes Pré-Configurados Disponíveis:")
     for key, val in configuracoes.items():
         print(f"[{key}] {val['desc']}")
         
-    escolha_teste = input("\nEscolha o teste que deseja executar (1-5): ")
+    escolha_teste = input("\nEscolha o teste que deseja executar (1-6): ")
     if escolha_teste not in configuracoes:
         print("Escolha inválida. Encerrando.")
         return
@@ -115,15 +141,15 @@ def executar_sistema_automatico():
     limite_esforco = cfg["ensaio"]["limite_esforco"]
     tolerancia_rp = cfg["ensaio"]["tolerancia_rp_in"] / 100.0
     
-    ov, comp, atu, rui, trans, perm = cfg["restricoes"].values()
+    ov, comp, atu, trans, perm = cfg["restricoes"].values()
     qtd_pids = len(cfg["pids"])
 
     decisor = DecisorDeMetricas()
-    pesos = decisor.obter_pesos(ov, comp, atu, rui, trans, perm)
+    pesos = decisor.obter_pesos(ov, comp, atu, trans, perm)
 
     lista_pids = []
     lista_indices_brutos = []
-    avaliador = AvaliadorPID(K, tau, T, SP, tempo_amostragem, tipo_planta, zeta, t_duracao_max, amp_degrau, t_estabilizacao, intervalo_testes, tolerancia_rp, sentido_teste, criterio_parada)
+    avaliador = AvaliadorPID(K, tau, T, SP, tempo_amostragem, tipo_planta, zeta, t_duracao_max, amp_degrau, t_estabilizacao, intervalo_testes, tolerancia_rp, sentido_teste, criterio_parada, MV0=MV0)
 
     for i, (kp, ki, kd) in enumerate(cfg["pids"]):
         ind_brutos = avaliador.calcular_indices(kp, ki, kd, num_repeticoes)
@@ -131,10 +157,36 @@ def executar_sistema_automatico():
         lista_indices_brutos.append(ind_brutos)
 
     limites_metricas = {}
+    print("\n" + "=" * 75)
+    print("AUDITORIA NUMÉRICA — WOOD-BERRY")
+    print("=" * 75)
+
+    for i, res in enumerate(lista_indices_brutos):
+        print(f"\nPID #{i+1}")
+
+        for metrica in decisor.nomes_indices:
+            print(f"  {metrica:<22}: {res[metrica]:.6f}")
+
+        ov = res["Overshoot_Seguranca"]
+
+        print(f"  {'Overshoot de segurança':<22}: {ov:.4f}%")
+        print(f"  {'Limite permitido':<22}: {limite_overshoot:.4f}%")
+
+        if ov > limite_overshoot:
+            print("  RESULTADO OV: REPROVADO")
+        else:
+            print("  RESULTADO OV: APROVADO")
+
+        print(f"  Janelas completas: {res['Segmentos_Completos']}")
+        print(f"  Janelas parciais: {res['Segmentos_Parciais']}")
+        print(f"  Sem acomodação: {res['Segmentos_Sem_Acomodacao']}")
+
+    print("=" * 75)
+    
     pids_validos_idx = []
 
     for i, res in enumerate(lista_indices_brutos):
-        if (res["IAE"] < 1e5 and res["Overshoot"] <= limite_overshoot and
+        if (res["IAE"] < 1e5 and res["Overshoot_Seguranca"] <= limite_overshoot and
             res["Esforco_Maximo"] <= limite_esforco and res["PV_Max"] <= faixa_operacional[1] and
             res["PV_Min"] >= faixa_operacional[0] and res["MV_Max"] <= limites_mv[1] and
             res["MV_Min"] >= limites_mv[0]):
@@ -157,7 +209,7 @@ def executar_sistema_automatico():
         if ind_bruto["IAE"] >= 1e5:
             for metrica in decisor.nomes_indices: ind_norm[metrica] = 1.0
             ranking.append({**pid, "score": 1.0, "status": "Instável"})
-        elif ind_bruto["Overshoot"] > limite_overshoot:
+        elif ind_bruto["Overshoot_Seguranca"] > limite_overshoot:
             for metrica in decisor.nomes_indices: ind_norm[metrica] = 1.0
             ranking.append({**pid, "score": 1.0, "status": "Bloq. (Overshoot)"})
         elif ind_bruto["Esforco_Maximo"] > limite_esforco:
@@ -203,6 +255,10 @@ def executar_sistema_automatico():
     print(f" Ação de Controle  : {var_manipulada} -> {var_controlada} ({unidade_engenharia})")
     print(f" Eng. Responsável  : {responsavel_tecnico}")
     print(f" Critério de Acom. : {tolerancia_rp * 100}% de tolerância")
+    janelas_completas = sum(seg["completo"] for seg in avaliador.segmentos)
+    janelas_parciais = sum(not seg["completo"] for seg in avaliador.segmentos)
+    print(f" Janelas avaliadas  : {janelas_completas} completas; "
+          f"{janelas_parciais} parcial(is) excluída(s) do Score")
 
     print("\n" + "="*95)
     print(f"{'TABELA DE ÍNDICES NORMALIZADOS':^95}") 
@@ -218,7 +274,7 @@ def executar_sistema_automatico():
         for idx in range(qtd_pids):
             val_norm = lista_indices_normalizados[idx][metrica]
             if (lista_indices_brutos[idx]["IAE"] >= 1e5 or
-                lista_indices_brutos[idx]["Overshoot"] > limite_overshoot or
+                lista_indices_brutos[idx]["Overshoot_Seguranca"] > limite_overshoot or
                 lista_indices_brutos[idx]["Esforco_Maximo"] > limite_esforco or
                 lista_indices_brutos[idx]["PV_Max"] > faixa_operacional[1] or
                 lista_indices_brutos[idx]["PV_Min"] < faixa_operacional[0] or
@@ -241,7 +297,7 @@ def executar_sistema_automatico():
 
     for pos, res in enumerate(ranking):
         pfx = "#1" if pos == 0 and res["status"] == "Aprovado" else f"#{pos+1}"
-        print(f"{pfx:<5} | PID {res['id']:<2} | {res['Kp']:<8.3f} | {res['Ki']:<8.3f} | {res['Kd']:<8.3f} | {res['score']:<8.4f} | {res['status']}")
+        print(f"{pfx:<5} | PID {res['id']:<2} | {res['Kp']:<8.3f} | {res['Ki']:<10.6f} | {res['Kd']:<8.3f} | {res['score']:<8.4f} | {res['status']}")
     print("="*70)
 
     if ranking and ranking[0]['status'] == "Aprovado":
@@ -254,11 +310,11 @@ def executar_sistema_automatico():
         pesos_ordenados = sorted(pesos.items(), key=lambda x: x[1], reverse=True)
         top_3_metricas = [f"{k} ({v*100:.1f}%)" for k, v in pesos_ordenados[:3]]
 
-        print(f"\nAo longo da normalização, o PID #{vencedor['id']} obteve a menor penalidade")
-        print(f"nas três métricas mais importantes para a sua malha:")
+        print(f"\nO PID #{vencedor['id']} obteve o menor Score global.")
+        print(f"As três métricas de maior peso na avaliação foram:")
         print(f"Top 3 Métricas: {', '.join(top_3_metricas)}.")
         print("\nJustificativa baseada nas restrições:")
-        print(gerar_explicacao(ov, comp, atu, rui, trans, perm, pesos))
+        print(gerar_explicacao(ov, comp, atu, trans, perm, pesos))
         print("*"*70 + "\n")
 
     plt.style.use('seaborn-v0_8-whitegrid')

@@ -42,11 +42,10 @@ def _montar_resposta_api(ranking_interno: list, req_controladores: list, lista_i
             Overshoot=float(ind_bruto["Overshoot"]),
             Tempo_Acomodacao=float(ind_bruto["Tempo_Acomodacao"]),
             Tempo_Subida=float(ind_bruto["Tempo_Subida"]),
-            Desvio_Media_Saida=float(ind_bruto["Desvio_Media_Saida"]),
+            Erro_Regime=float(ind_bruto["Erro_Regime"]),
             Var_Saida=float(ind_bruto["Var_Saida"]),
             Var_Controle=float(ind_bruto["Var_Controle"]),
             Cruzamentos_SP=float(ind_bruto["Cruzamentos_SP"]),
-            Harris_Index=float(ind_bruto["Harris_Index"]),
             Esforco_Maximo=float(ind_bruto["Esforco_Maximo"]),
             PV_Max=float(ind_bruto["PV_Max"]),
             PV_Min=float(ind_bruto["PV_Min"]),
@@ -60,7 +59,7 @@ def avaliar_controladores(req: AvaliacaoRequest) -> AvaliacaoResponse:
     decisor = DecisorDeMetricas()
     pesos = decisor.obter_pesos(
         req.restricoes.ov, req.restricoes.comp, req.restricoes.atu, 
-        req.restricoes.rui, req.restricoes.trans, req.restricoes.perm
+        req.restricoes.trans, req.restricoes.perm
     )
     
     tolerancia_rp_decimal = req.ensaio.tolerancia_rp / 100.0
@@ -79,7 +78,8 @@ def avaliar_controladores(req: AvaliacaoRequest) -> AvaliacaoResponse:
         int_testes=req.ensaio.intervalo_testes,
         tolerancia_rp=tolerancia_rp_decimal, 
         sentido_teste=req.ensaio.sentido_teste,
-        criterio_parada=req.ensaio.criterio_parada
+        criterio_parada=req.ensaio.criterio_parada,
+        MV0=req.planta.MV0
     )
 
     lista_indices_brutos = []
@@ -95,7 +95,7 @@ def avaliar_controladores(req: AvaliacaoRequest) -> AvaliacaoResponse:
     
     for i, res in enumerate(lista_indices_brutos):
         if (res["IAE"] < 1e5 and
-            res["Overshoot"] <= req.limites.limite_overshoot and
+            res["Overshoot_Seguranca"] <= req.limites.limite_overshoot and
             res["Esforco_Maximo"] <= req.limites.limite_esforco and
             res["PV_Max"] <= req.limites.f_op_max and
             res["PV_Min"] >= req.limites.f_op_min and
@@ -116,7 +116,7 @@ def avaliar_controladores(req: AvaliacaoRequest) -> AvaliacaoResponse:
         
         if ind_bruto["IAE"] >= 1e5:
             ranking_interno.append({**pid, "score": 1.0, "status": "Instável"})
-        elif ind_bruto["Overshoot"] > req.limites.limite_overshoot:
+        elif ind_bruto["Overshoot_Seguranca"] > req.limites.limite_overshoot:
             ranking_interno.append({**pid, "score": 1.0, "status": "Bloq. (Overshoot)"})
         elif ind_bruto["Esforco_Maximo"] > req.limites.limite_esforco:
             ranking_interno.append({**pid, "score": 1.0, "status": "Bloq. (Esforço)"})

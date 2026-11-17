@@ -39,6 +39,7 @@ class PlantaFisica(BaseModel):
     zeta: float = 1.0
     T: float
     SP: float
+    MV0: float
 
 class ConfiguracaoEnsaio(BaseModel):
     amp_degrau: float
@@ -55,7 +56,6 @@ class QuestionarioRestricoes(BaseModel):
     ov: int = Field(..., ge=1, le=3)
     comp: int = Field(..., ge=1, le=3)
     atu: int = Field(..., ge=0, le=1)
-    rui: int = Field(..., ge=1, le=3)
     trans: int = Field(..., ge=1, le=3)
     perm: int = Field(..., ge=1, le=3)
 
@@ -87,11 +87,10 @@ class PIDMetricas(BaseModel):
     Overshoot: float
     Tempo_Acomodacao: float
     Tempo_Subida: float
-    Desvio_Media_Saida: float
+    Erro_Regime: float
     Var_Saida: float
     Var_Controle: float
     Cruzamentos_SP: float
-    Harris_Index: float
     Esforco_Maximo: float
     PV_Max: float
     PV_Min: float

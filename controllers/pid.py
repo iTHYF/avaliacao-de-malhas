@@ -5,7 +5,7 @@ def criar_controlador_pid(Kp, Ki, Kd, Ts):
     I_cont = ct.tf([Ki], [1, 0])
 
     N = 10.0
-    Tf = (Kd / (Kp * N)) if Kp > 0.001 else 0.01
+    Tf = (Kd / (Kp * N)) if abs(Kp) > 0.001 else 0.01
     Tf = max(Tf, 0.001)
     D_cont = ct.tf([Kd, 0], [Tf, 1])
 

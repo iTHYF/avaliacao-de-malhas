@@ -1,4 +1,7 @@
 import control as ct
 
-def obter_pade(T):
-    return ct.pade(T, n=2, numdeg=0) if T > 0 else ([1], [1])
+def obter_atraso_discreto(atraso, Ts):
+    d = int(atraso / Ts)
+    numerador = [1]
+    denominador = [1] + [0] * d
+    return ct.tf(numerador, denominador, Ts)

@@ -4,13 +4,12 @@ from metrics.composite_indices import DecisorDeMetricas
 from simulation.closed_loop_simulator import AvaliadorPID
 from storage.history_service import HistoryService
 
-def gerar_explicacao(ov, comp, atu, rui, trans, perm, pesos):
+def gerar_explicacao(ov, comp, atu, trans, perm, pesos):
     explicacoes = []
     if ov == 1: explicacoes.append("Restrição de OVERSHOOT: O sistema puniu severamente controladores que ultrapassam o alvo.")
     if comp == 1: explicacoes.append("Foco em RAPIDEZ: O sistema deu peso ao Tempo de Subida e penalizou a lentidão.")
     elif comp == 2: explicacoes.append("Foco em PRECISÃO FINAL: O peso foi focado em anular o erro a longo prazo.")
     if atu == 1: explicacoes.append("Restrição no ATUADOR: A Variância do Controle e a Oscilação receberam grande importância para evitar desgaste mecânico.")
-    if rui in [2, 3]: explicacoes.append("Sensibilidade a RUÍDO: O Índice de Harris foi ativado ao máximo. Controladores com fraca rejeição estocástica foram punidos.")
     if trans == 1: explicacoes.append("Regime TRANSITÓRIO Suave: Oscilações puras (cruzamentos de setpoint) e trepidação na subida foram fortemente penalizadas.")
     elif trans == 3: explicacoes.append("Regime TRANSITÓRIO Agressivo: Permitiu-se certa oscilação inicial em troca de atingir o setpoint mais rápido.")
     if perm == 1: explicacoes.append("Regime PERMANENTE (Intolerável): O multiplicador de tempo (ITAE/ITSE) foi ativado ao máximo para eliminar erros fixos.")
@@ -26,7 +25,6 @@ def executar_sistema():
     print(f"{'SELEÇÃO E OTIMIZAÇÃO DE CONTROLADORES PID':^80}")
     print("="*80)
 
-    # --- CADASTRO DA MALHA ---
     print("\n[ CADASTRO DA MALHA ]")
     nome_malha = input("Nome da malha: ")
     var_controlada = input("Variável controlada: ")
@@ -34,7 +32,6 @@ def executar_sistema():
     unidade_engenharia = input("Unidade de engenharia: ")
     responsavel_tecnico = input("Responsável técnico: ")
 
-    # --- LIMITES E PARÂMETROS OPERACIONAIS ---
     print("\n[ LIMITES E PARÂMETROS OPERACIONAIS ]")
     f_op_min = float(input("Faixa operacional segura - Mínimo: "))
     f_op_max = float(input("Faixa operacional segura - Máximo: "))
@@ -50,7 +47,6 @@ def executar_sistema():
 
     tempo_amostragem = float(input("Tempo de amostragem (s): "))
 
-    # --- CONFIGURAÇÃO DO ENSAIO ---
     print("\n[ CONFIGURAÇÃO DO ENSAIO ]")
     amp_degrau = float(input("Amplitude da variação do setpoint: "))
     sentido_teste = int(input("Sentido do teste [1] Subida  [2] Descida  [3] Ambos: "))
@@ -64,7 +60,6 @@ def executar_sistema():
     tolerancia_rp_in = float(input("Tolerância de regime permanente (em percentagem sem '%'): "))
     tolerancia_rp = tolerancia_rp_in / 100.0
 
-    # --- DADOS DA PLANTA ---
     print("\n[ DADOS DA PLANTA FÍSICA ]")
     tipo_planta = int(input("Tipo de Planta [1] 1ª Ordem [2] 2ª Ordem: "))
     K = float(input("Insira o ganho da planta (K): "))
@@ -76,23 +71,22 @@ def executar_sistema():
 
     T = float(input("Insira o atraso de transporte (T): "))
     SP = float(input("Insira o valor do Setpoint (SP): "))
+    MV0 = float(input("Ponto de operação inicial da variável manipulada (MV0): "))
 
-    # --- QUESTIONÁRIO DE RESTRIÇÕES ---
     print("\n[ QUESTIONÁRIO DE RESTRIÇÕES ]")
     ov = int(input("1. O quanto o sistema pode ultrapassar o setpoint?\n[1] Não pode  [2] Pouco  [3] Indiferente\nResposta: "))
     comp = int(input("\n2. Qual a prioridade principal da malha?\n[1] Rapidez  [2] Precisão final  [3] Equilíbrio\nResposta: "))
     atu = int(input("\n3. O atuador possui limitações?\n[0] Não  [1] Sim\nResposta (0-1): "))
-    rui = int(input("\n4. Qual o nível de ruído no sistema?\n[1] Baixo  [2] Médio  [3] Alto\nResposta: "))
-    trans = int(input("\n5. Como deve ser a resposta no regime transitório?\n[1] Suave, sem oscilação  [2] Balanceada  [3] Agressiva\nResposta: "))
-    perm = int(input("\n6. Qual a importância do erro de regime permanente?\n[1] Intolerável  [2] Pouco tolerado  [3] Tolerado\nResposta: "))
+    trans = int(input("\n4. Como deve ser a resposta no regime transitório?\n[1] Suave, sem oscilação  [2] Balanceada  [3] Agressiva\nResposta: "))
+    perm = int(input("\n5. Qual a importância do erro de regime permanente?\n[1] Intolerável  [2] Pouco tolerado  [3] Tolerado\nResposta: "))
 
     decisor = DecisorDeMetricas()
-    pesos = decisor.obter_pesos(ov, comp, atu, rui, trans, perm)
+    pesos = decisor.obter_pesos(ov, comp, atu, trans, perm)
 
     qtd_pids = int(input("\nQuantos PIDs deseja comparar? "))
     lista_pids = []
     lista_indices_brutos = []
-    avaliador = AvaliadorPID(K, tau, T, SP, tempo_amostragem, tipo_planta, zeta, t_duracao_max, amp_degrau, t_estabilizacao, intervalo_testes,tolerancia_rp, sentido_teste,criterio_parada)
+    avaliador = AvaliadorPID(K, tau, T, SP, tempo_amostragem, tipo_planta, zeta, t_duracao_max, amp_degrau, t_estabilizacao, intervalo_testes, tolerancia_rp, sentido_teste, criterio_parada, MV0=MV0)
 
     print("\n[ INSERÇÃO DOS PARÂMETROS ]")
     for i in range(qtd_pids):
@@ -110,23 +104,21 @@ def executar_sistema():
         print("\n[Erro] O ranqueamento exige ao menos 2 PIDs para cálculo da normalização.")
         return
 
-    # --- TRAVA DE SEGURANÇA OPERACIONAL ---
     limites_metricas = {}
     pids_validos_idx = []
 
     for i, res in enumerate(lista_indices_brutos):
         if (res["IAE"] < 1e5 and
-            res["Overshoot"] <= limite_overshoot and
+            res["Overshoot_Seguranca"] <= limite_overshoot and
             res["Esforco_Maximo"] <= limite_esforco and
             res["PV_Max"] <= faixa_operacional[1] and
             res["PV_Min"] >= faixa_operacional[0] and
             res["MV_Max"] <= limites_mv[1] and
             res["MV_Min"] >= limites_mv[0]):
-
             pids_validos_idx.append(i)
 
     if len(pids_validos_idx) == 0:
-        print("\n[Erro] Nenhum controlador passou nas travas de segurança (Instabilidade, Overshoot, Esforço, PV ou Saturação da MV).")
+        print("\n[Erro] Nenhum controlador passou pelas travas de segurança. Não é possível calcular o ranking.")
         return
 
     for metrica in decisor.nomes_indices:
@@ -145,7 +137,7 @@ def executar_sistema():
                 ind_norm[metrica] = 1.0
             ranking.append({**pid, "score": 1.0, "status": "Instável"})
 
-        elif ind_bruto["Overshoot"] > limite_overshoot:
+        elif ind_bruto["Overshoot_Seguranca"] > limite_overshoot:
             for metrica in decisor.nomes_indices:
                 ind_norm[metrica] = 1.0
             ranking.append({**pid, "score": 1.0, "status": "Bloq. (Overshoot)"})
@@ -177,8 +169,6 @@ def executar_sistema():
             ranking.append({**pid, "score": score, "status": "Aprovado"})
 
         lista_indices_normalizados.append(ind_norm)
-
-    # SALVAMENTO NO HISTÓRICO DE AVALIAÇÕES 
     
     dados_app = {
         "nome_malha": nome_malha, "var_controlada": var_controlada, 
@@ -194,9 +184,7 @@ def executar_sistema():
         service.salvar_avaliacao(dados_app)
     except Exception as e:
         print(f"\n[AVISO] Não foi possível salvar o histórico. O relatório prosseguirá em memória. Detalhe: {e}")
-    # ==========================================================
-    # CABEÇALHO DO RELATÓRIO COM OS DADOS DIGITADOS
-    # ==========================================================
+
     print("\n" + "#"*95)
     print(f"{'RELATÓRIO TÉCNICO':^95}")
     print("#"*95)
@@ -208,7 +196,6 @@ def executar_sistema():
     print("\n" + "="*95)
     print(f"{'TABELA DE ÍNDICES NORMALIZADOS':^95}") 
     print("="*95)
-    # LEMBRANDO QUE 0.0 É O MELHOR
     cabecalho = f"{'MÉTRICA':<20} | {'PESO (%)':<10} |"
     for pid in lista_pids:
         cabecalho += f" PID #{pid['id']:<8} |"
@@ -222,7 +209,7 @@ def executar_sistema():
             val_norm = lista_indices_normalizados[idx][metrica]
 
             if (lista_indices_brutos[idx]["IAE"] >= 1e5 or
-                lista_indices_brutos[idx]["Overshoot"] > limite_overshoot or
+                lista_indices_brutos[idx]["Overshoot_Seguranca"] > limite_overshoot or
                 lista_indices_brutos[idx]["Esforco_Maximo"] > limite_esforco or
                 lista_indices_brutos[idx]["PV_Max"] > faixa_operacional[1] or
                 lista_indices_brutos[idx]["PV_Min"] < faixa_operacional[0] or
@@ -263,10 +250,9 @@ def executar_sistema():
         print(f"nas três métricas mais importantes para a sua malha:")
         print(f"Top 3 Métricas: {', '.join(top_3_metricas)}.")
         print("\nJustificativa baseada nas restrições:")
-        print(gerar_explicacao(ov, comp, atu, rui, trans, perm, pesos))
+        print(gerar_explicacao(ov, comp, atu, trans, perm, pesos))
         print("*"*70 + "\n")
 
-    # SEÇÃO DE PLOTAGEM DE GRÁFICOS
     plt.style.use('seaborn-v0_8-whitegrid')
     fig = plt.figure(figsize=(14, 10))
 
@@ -284,7 +270,6 @@ def executar_sistema():
     ax1.set_ylabel('SP')
     ax1.legend()
 
-    # 2. Gráfico do Esforço de Controle u(t)
     ax2 = plt.subplot(2, 2, 2)
     for idx, pid in enumerate(lista_pids):
         if lista_indices_brutos[idx]["IAE"] < 1e5:
@@ -295,7 +280,6 @@ def executar_sistema():
     ax2.set_ylabel('Amplitude do Comando')
     ax2.legend()
 
-    # 3. Gráfico de Barras do Score Final
     ax3 = plt.subplot(2, 1, 2)
     pids_estaveis = [r for r in ranking if r['status'] == 'Aprovado']
 
