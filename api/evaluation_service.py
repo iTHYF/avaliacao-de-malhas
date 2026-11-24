@@ -58,7 +58,7 @@ def _montar_resposta_api(ranking_interno: list, req_controladores: list, lista_i
 
     return AvaliacaoResponse(ranking=ranking_api, metricas=metricas_api)
 
-def avaliar_controladores(req: AvaliacaoRequest) -> AvaliacaoResponse:
+def avaliar_controladores(req: AvaliacaoRequest, *, retornar_detalhes: bool = False) -> AvaliacaoResponse:
     decisor = DecisorDeMetricas()
     pesos = decisor.obter_pesos(
         req.restricoes.ov, req.restricoes.comp, req.restricoes.atu, 
@@ -145,4 +145,18 @@ def avaliar_controladores(req: AvaliacaoRequest) -> AvaliacaoResponse:
     except Exception as e:
         logger.error(f"Erro ao salvar historico no Excel: {e}")
 
-    return _montar_resposta_api(ranking_interno, req.controladores, lista_indices_brutos)
+
+    resposta = _montar_resposta_api(
+        ranking_interno,
+        req.controladores,
+        lista_indices_brutos
+    )
+
+    if retornar_detalhes:
+        return resposta, {
+            "lista_indices_brutos": lista_indices_brutos,
+            "pesos": pesos,
+            "ranking": ranking_interno,
+        }
+
+    return resposta

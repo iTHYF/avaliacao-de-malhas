@@ -5,7 +5,7 @@ from metrics.composite_indices import DecisorDeMetricas
 from simulation.closed_loop_simulator import AvaliadorPID
 from storage.history_service import HistoryService
 from storage.history_cli import consultar_historico
-
+from reports.pdf_report import gerar_relatorio_pdf
 
 def gerar_explicacao(ov, comp, atu, trans, perm, pesos):
     explicacoes = []
@@ -305,6 +305,30 @@ def executar_sistema():
         ax3.axis('off')
 
     plt.tight_layout()
+    dados_pdf = {
+        **dados_app,
+        "lista_indices_normalizados": lista_indices_normalizados,
+        "tipo_planta": "FOPDT" if tipo_planta == 1 else "SOPDT",
+        "zeta": zeta if tipo_planta == 2 else None,
+        "MV0": MV0,
+        "tempo_amostragem": tempo_amostragem,
+        "t_estabilizacao": t_estabilizacao,
+        "intervalo_testes": intervalo_testes,
+        "num_repeticoes": num_repeticoes,
+        "criterio_parada": criterio_parada,
+        "tolerancia_rp": tolerancia_rp * 100.0,
+        "limite_overshoot": limite_overshoot,
+        "limite_esforco": limite_esforco,
+        "faixa_pv": faixa_operacional,
+        "faixa_sp": limites_sp,
+        "faixa_mv": limites_mv,
+    }
+    try:
+        destino_pdf = gerar_relatorio_pdf(dados_pdf, figura=fig)
+        print(f"\n[PDF] Relatorio salvo em: {destino_pdf}")
+    except Exception as erro:
+        print(f"\n[AVISO] Nao foi possivel criar o PDF: {erro}")
+
     plt.show()
 
 

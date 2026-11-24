@@ -6,14 +6,8 @@ from simulation.closed_loop_simulator import AvaliadorPID
 from storage.history_service import HistoryService
 from storage.history_cli import consultar_historico
 from appy import gerar_explicacao
+from reports.pdf_report import gerar_relatorio_pdf
 
-# Banco de plantas de primeira ordem com atraso (FOPDT).
-# Todos os ganhos abaixo foram CALCULADOS PREVIAMENTE, fora do software.
-# A ferramenta somente avalia esses candidatos; ela NAO realiza sintonia.
-# Referencias: Wood & Berry (1973); Vinante & Luyben (1972);
-# Skogestad (SIMC); Ziegler & Nichols (1942); Cohen & Coon (1953).
-# As plantas 1-3 sao modelos FOPDT normalizados, nao modelos industriais medidos.
-# As plantas 4-6 sao CANAIS SISO de plantas originalmente multivariaveis.
 
 METODOS = (
     "SIMC-PI rapido (lambda=L)",
@@ -23,12 +17,8 @@ METODOS = (
     "Cohen-Coon PID (curva de reacao)",
 )
 
-
 def obter_configuracoes_plantas():
-    # Convenção: ganhos paralelos C(s) = Kp + Ki/s + Kd*s.
-    # O modulo controllers/pid.py acrescenta um filtro a acao derivativa.
-    # As plantas 1-3 usam unidade de tempo normalizada (u.t.).
-    # G11 Wood-Berry e Vinante-Luyben utilizam minutos; G22 usa segundos.
+
     return {
         "1": {
             "desc": "FOPDT normalizada — atraso dominante",
@@ -124,7 +114,6 @@ def obter_configuracoes_plantas():
 
 
 def obter_teste_original_woodberry():
-    # Caso ja auditado no artigo. NAO alterar ganhos ou condicoes.
     return {
             "desc": "Estudo de Caso: Coluna de Wood-Berry (5 PIDs Graduais)",
             "malha": {
@@ -159,8 +148,6 @@ def obter_teste_original_woodberry():
 
 
 def configurar_benchmark(planta, responsavel):
-    # Limites amplos ilustrativos para triagem numerica, NAO limites industriais.
-    # Os mesmos limites numericos nao implicam as mesmas unidades fisicas.
     return {
         "desc": "Cinco sintonias calculadas (SIMC, IMC, ZN, Cohen-Coon)",
         "malha": {
@@ -503,6 +490,31 @@ def executar_sistema_automatico():
         ax3.axis('off')
 
     plt.tight_layout()
+    dados_pdf = {
+        **dados_app,
+        "lista_indices_normalizados": lista_indices_normalizados,
+        "tipo_planta": "FOPDT" if tipo_planta == 1 else "SOPDT",
+        "zeta": zeta if tipo_planta == 2 else None,
+        "MV0": MV0,
+        "tempo_amostragem": tempo_amostragem,
+        "t_estabilizacao": t_estabilizacao,
+        "intervalo_testes": intervalo_testes,
+        "num_repeticoes": num_repeticoes,
+        "criterio_parada": criterio_parada,
+        "tolerancia_rp": tolerancia_rp * 100.0,
+        "limite_overshoot": limite_overshoot,
+        "limite_esforco": limite_esforco,
+        "faixa_pv": faixa_operacional,
+        "faixa_sp": [cfg["limites"]["l_sp_min"], cfg["limites"]["l_sp_max"]],
+        "faixa_mv": limites_mv,
+        "referencia": planta_cfg["referencia"],
+    }
+    try:
+        destino_pdf = gerar_relatorio_pdf(dados_pdf, figura=fig)
+        print(f"\n[PDF] Relatorio salvo em: {destino_pdf}")
+    except Exception as erro:
+        print(f"\n[AVISO] Nao foi possivel criar o PDF: {erro}")
+
     plt.show()
 
 

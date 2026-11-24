@@ -27,3 +27,6 @@ __pycache__/
 # Ambientes e configuracoes locais
 .venv/
 .env
+
+# Relatorios gerados automaticamente
+/relatorios/
