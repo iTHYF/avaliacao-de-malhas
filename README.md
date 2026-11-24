@@ -262,10 +262,5 @@ A ferramenta disponibiliza diferentes formas de consulta dos resultados.
 
 O projeto permanece em desenvolvimento. Entre as possibilidades previstas para etapas futuras estão o aprimoramento dos indicadores, a análise de ruído, a integração com dados de malhas industriais e a investigação da aplicação de inteligência artificial à ferramenta.
 
-Essas possibilidades ainda não constituem funcionalidades implementadas.
 
----
 
-**Projeto de Iniciação Científica — CNPq | LAUT | UFRN**
-
-Engenharia Elétrica — Sistemas de Controle
